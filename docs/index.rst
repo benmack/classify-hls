@@ -14,7 +14,11 @@ Contents:
    getting-started
    commands
 
-
+.. toctree::
+   :maxdepth: 2
+   :caption: src Package
+   
+   modules/src
 
 Indices and tables
 ==================
