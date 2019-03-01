@@ -42,6 +42,7 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.cover
+.pytest_cache
 
 # Translations
 *.mo
@@ -90,3 +91,5 @@ target/
 
 # Project-specific
 project_configs.ini
+docs/notebooks
+docs/modules

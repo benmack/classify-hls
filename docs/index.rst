@@ -9,15 +9,21 @@ classify-hls documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
+   :caption: Usage
 
    getting-started
-   commands
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Basics & Overviews
+
+   notebooks/00_basics/00_project_config_parser
 
 .. toctree::
    :maxdepth: 2
    :caption: src Package
-   
+
    modules/src
 
 Indices and tables

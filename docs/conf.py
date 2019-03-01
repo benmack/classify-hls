@@ -12,6 +12,7 @@
 # serve to show the default.
 
 import os
+import shutil
 import sys
 
 prj_dir = os.path.dirname(
@@ -258,3 +259,8 @@ texinfo_documents = [
 
 # How to display URL addresses: 'footnote', 'no', or 'inline'.
 # texinfo_show_urls = 'footnote'
+
+# copy notebooks such that they can be refered to easily in the *.rst files
+shutil.rmtree('./notebooks', ignore_errors=True)
+
+shutil.copytree('../notebooks', './notebooks')
