@@ -21,6 +21,10 @@ class ProjectConfigParser(configparser.ConfigParser):
         """Get the file path of the configuration file."""
         return self._config_file
 
+    def print_config_file_content(self):
+        with open(self.config_file) as src:
+            print(src.read())
+
     def get_path(self, section, option):
         """Get an option from the configuration file and convert it to a Path object.
         
