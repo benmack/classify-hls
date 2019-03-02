@@ -25,12 +25,14 @@ Contents:
    :caption: Raw data
 
    notebooks/01_raw/01_raw_clc_data
+   notebooks/01_raw/02a_download_hls_data
 
 .. toctree::
    :maxdepth: 1
    :caption: Interim data
 
    notebooks/02_interim/01_vector/01_clc_to_tiled_vector_data
+   notebooks/02_interim/02_raster/01_hls_hdf2tiff
 
 .. toctree::
    :maxdepth: 2
