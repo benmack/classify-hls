@@ -21,6 +21,18 @@ Contents:
    notebooks/00_basics/00_project_config_parser
 
 .. toctree::
+   :maxdepth: 1
+   :caption: Raw data
+
+   notebooks/01_raw/01_raw_clc_data
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Interim data
+
+   notebooks/02_interim/01_vector/01_clc_to_tiled_vector_data
+
+.. toctree::
    :maxdepth: 2
    :caption: src Package
 
