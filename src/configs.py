@@ -25,14 +25,19 @@ class ProjectConfigParser(configparser.ConfigParser):
         with open(self.config_file) as src:
             print(src.read())
 
-    def get_path(self, section, option):
+    def get_path(self, section, option, tile=None):
         """Get an option from the configuration file and convert it to a Path object.
         
         Arguments:
             section {str} -- See ``configparser.ConfigParser.get()`` documentation.
             option {str} -- See ``configparser.ConfigParser.get()`` documentation.
-        
+            tile {str} -- If the path in the settings file contains a placeholder for the tile 
+                (e.g. *./data/interim/s2_{tile}.tif*) and tile is given (e.g. *32UNU*) then the 
+                function includes the tile in the path (e.g. returns *./data/interim/s2_32UNU.tif*)
         Returns:
             ``Path`` object -- ``pathlib.Path(self.get(section, option))``
         """
-        return Path(self.get(section, option))
+        pth = self.get(section, option)
+        if tile:
+            pth = pth.format(**{"tile": tile})
+        return Path(pth)
