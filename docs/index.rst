@@ -33,6 +33,7 @@ Contents:
 
    notebooks/02_interim/01_vector/01_clc_to_tiled_vector_data
    notebooks/02_interim/02_raster/01_hls_hdf2tiff
+   notebooks/02_interim/02_raster/02_calculate_clearsky_bands
 
 .. toctree::
    :maxdepth: 2

@@ -41,3 +41,31 @@ class ProjectConfigParser(configparser.ConfigParser):
         if tile:
             pth = pth.format(**{"tile": tile})
         return Path(pth)
+
+    def get_scene_hdf(self, date, tile, product):
+        """Get an option from the configuration file and convert it to a Path object.
+        
+        Arguments:
+            date {str} -- e.g. 2018003
+            tile {str} -- e.g. 32UNU
+            product {str} -- L30 or S30
+        Returns:
+            ``Path`` object -- Scene path to the HDF file or directory with TIFFs.
+        """
+        pth = self.get("HLSL2", "scene_hdf")
+        pth = pth.format(**{"date":date, "tile": tile, "product":product})
+        return Path(pth)
+
+    def get_scene_dir(self, date, tile, product):
+        """Get an option from the configuration file and convert it to a Path object.
+        
+        Arguments:
+            date {str} -- e.g. 2018003
+            tile {str} -- e.g. 32UNU
+            product {str} -- L30 or S30
+        Returns:
+            ``Path`` object -- Scene path to the HDF file or directory with TIFFs.
+        """
+        pth = self.get("HLSL2", "scene_dir_tif")
+        pth = pth.format(**{"date":date, "tile": tile, "product":product})
+        return Path(pth)
