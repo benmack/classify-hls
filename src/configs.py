@@ -1,6 +1,7 @@
 import configparser
 import sys
 from pathlib import Path
+import pandas as pd
 
 class ProjectConfigParser(configparser.ConfigParser):
     def __init__(self, config_file=None):
@@ -69,3 +70,25 @@ class ProjectConfigParser(configparser.ConfigParser):
         pth = self.get("HLSL2", "scene_dir_tif")
         pth = pth.format(**{"date":date, "tile": tile, "product":product})
         return Path(pth)
+
+    def write_scene_collection(self, scenecoll, scenecoll_name):
+        sc_dir = (self.get_path("Interim", "rootdir") / "scene_collections")
+        scenecoll_file = sc_dir / (scenecoll_name + ".csv")
+        if scenecoll_file.exists():
+            raise ValueError(f"{scenecoll_file} exists. Delete it if you are sure to write it.")
+        else:
+            sc_dir.mkdir(exist_ok=True, parents=True)
+            scenecoll.to_csv(scenecoll_file, index=False)
+            print(f" Scene collection written to {scenecoll_file}" )
+
+    def read_scene_collection(self, scenecoll_name):
+        sc_dir = (self.get_path("Interim", "rootdir") / "scene_collections")
+        scenecoll_file = sc_dir / (scenecoll_name + ".csv")
+        if not scenecoll_file.exists():
+            raise ValueError(f"{scenecoll_file} doos not exists.")
+        else:
+            return pd.read_csv(scenecoll_file)
+
+    def get_scene_collection_names(self):
+        scenecolls = (self.get_path("Interim", "rootdir") / "scene_collections").glob("*.csv")
+        return [sc.stem for sc in scenecolls]
