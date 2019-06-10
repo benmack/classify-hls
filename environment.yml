@@ -1,0 +1,30 @@
+# https://tdhopper.com/blog/my-python-environment-workflow-with-conda/
+# https://docs.anaconda.com/anaconda-cloud/user-guide/tasks/work-with-environments/
+# https://gist.github.com/ijstokes/45605149213e1630e928d8ff4cbdbe5f
+# https://github.com/sagemathinc/cocalc/issues/2403
+
+  # - nbsphinx
+  # - mlxtend
+
+name: classify-hls
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.6
+  - pip
+  - beautifulsoup4
+  - dask
+  - geopandas
+  - jupyterlab
+  - nbsphinx
+  - requests
+  - rasterio
+  - scikit-learn
+  - seaborn
+  - tqdm
+
+# manual isntallation of packages in developement to make them local editable:
+# pip3 install --no-deps --editable /home/ben/Devel/Packages/eo-box/
+# pip3 install --no-deps --editable /home/ben/Devel/Packages/nasa_hls/
+# pip3 install --no-deps --editable .

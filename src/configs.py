@@ -43,6 +43,20 @@ class ProjectConfigParser(configparser.ConfigParser):
             pth = pth.format(**{"tile": tile})
         return Path(pth)
 
+    def get_clc_legend(self):
+        """Get a look up table with the class IDs, names and colors of the three CLC levels."""
+        clc_legend = pd.read_csv(self.get_path("Raw", "clc_legend"), delimiter=";").iloc[0:44, :]
+        clc_legend.columns = ["l1_name", "l2_name", "l3_name", "grid_code", "rgb"]
+        clc_legend_ids = clc_legend["l3_name"].str[:5].str.split(".", expand=True)
+        clc_legend["l1_id"] = clc_legend_ids[0].astype("uint8")
+        clc_legend["l2_id"] = (clc_legend_ids[0] + clc_legend_ids[1]).astype("uint8")
+        clc_legend["l3_id"] = (clc_legend_ids[0] + clc_legend_ids[1] + clc_legend_ids[2]).astype("int")
+        clc_legend["l1_name"] = clc_legend["l1_name"].str[3::]
+        clc_legend["l2_name"] = clc_legend["l2_name"].str[4::]
+        clc_legend["l3_name"] = clc_legend["l3_name"].str[6::]
+        clc_legend = clc_legend.fillna(method="ffill")
+        return clc_legend
+
     def get_scene_hdf(self, date, tile, product):
         """Get an option from the configuration file and convert it to a Path object.
         
@@ -87,8 +101,38 @@ class ProjectConfigParser(configparser.ConfigParser):
         if not scenecoll_file.exists():
             raise ValueError(f"{scenecoll_file} doos not exists.")
         else:
-            return pd.read_csv(scenecoll_file)
+            df = pd.read_csv(scenecoll_file)
+            df["date"] = pd.to_datetime(df["date"], format="%Y-%m-%d")
+            return df
 
     def get_scene_collection_names(self):
         scenecolls = (self.get_path("Interim", "rootdir") / "scene_collections").glob("*.csv")
         return [sc.stem for sc in scenecolls]
+
+    def get_layer_df_of_scene_collection(self, scenecoll_name, bands):
+        # print(prjconf.get_scene_collection_names())
+
+        scoll = self.read_scene_collection(scenecoll_name)
+
+        dir_tiffs = self.get_path("Interim", "hls")
+        scoll["scenedir"] = [str(Path(dir_tiffs) / sceneid) for sceneid in scoll["sceneid"]]
+        scoll.head()
+
+        scoll_lays = []
+        for i, row in scoll.iterrows():
+            scoll_lays.append(
+                pd.DataFrame({"sceneid":[row["sceneid"]]*len(bands),
+                              "band": bands,
+                              "uname": [f"{row['product']}_{row['date']}_{b}" for b in bands],
+                              "product":[row["product"]]*len(bands),
+                              "tile":[row["tile"]]*len(bands),
+                              "date_Yj":[row["date_Yj"]]*len(bands),
+                              "date":[row["date"]]*len(bands),
+                              "cloud_cover":[row["cloud_cover"]]*len(bands),
+                              "spatial_coverage":[row["spatial_coverage"]]*len(bands),
+                              "path": [f"{row['scenedir']}/{row['sceneid']}__{b}.tif" for b in bands]
+                              })
+            )
+        scoll_lays = pd.concat(scoll_lays).reset_index(drop=True)
+        assert all ([Path(pth).exists() for pth in scoll_lays.path.values])
+        return scoll_lays

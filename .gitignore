@@ -95,3 +95,4 @@ docs/notebooks
 docs/modules
 classify-hls_qgis_project.qgz
 notebooks/notebooks_hls_corine
+XDG_CACHE_HOME/*
