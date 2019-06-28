@@ -89,6 +89,8 @@ target/
 # Mypy cache
 .mypy_cache/
 
+.snakemake
+
 # Project-specific
 project_configs.ini
 docs/notebooks
