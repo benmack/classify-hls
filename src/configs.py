@@ -1,7 +1,11 @@
 import configparser
+import geopandas as gpd
+import json
 import sys
 from pathlib import Path
 import pandas as pd
+
+PROJECT_ROOT_DIR = rootdir = Path(sys.modules[__name__].__file__).parent.parent
 
 class ProjectConfigParser(configparser.ConfigParser):
     def __init__(self, config_file=None):
@@ -12,11 +16,9 @@ class ProjectConfigParser(configparser.ConfigParser):
         """
 
         configparser.ConfigParser.__init__(self, interpolation=configparser.ExtendedInterpolation())
-        rootdir = sys.modules[__name__].__file__
-        rootdir = Path(rootdir).parent.parent
-        self._config_file = rootdir / "project_configs.ini"
+        self._config_file = PROJECT_ROOT_DIR / "project_configs.ini"
         self.read(self._config_file)
-
+    
     @property
     def config_file(self):
         """Get the file path of the configuration file."""
@@ -57,6 +59,25 @@ class ProjectConfigParser(configparser.ConfigParser):
         clc_legend = clc_legend.fillna(method="ffill")
         return clc_legend
 
+    def get_clc_subset(self, tile="32UNU", area_threshold=500000):
+        return self.get_path("Interim", "rootdir") / "clc" / f"clc2018_clc2018_v2018_20b2_raster100m_{tile}_epsg32623_area{area_threshold}.shp"
+
+    def get_tilenames(self):
+        return self.get("Params", "tiles").split(" ")
+
+    def get_footprints(self, tile="ALL", epsg=4326):
+        """Get tile footprint(s) as geopandas dataframe in the epsg specified or the original one if epsg=None."""
+        if tile =="ALL":
+            tilenames = self.get_tilenames()
+        tile_footprints = []
+        for tile in tilenames:
+            path__tile_footprint = self.get_path("Raw", "tile_footprint", tile)
+            if epsg is not None:
+                tile_footprints.append(gpd.read_file(path__tile_footprint).to_crs(epsg=epsg))
+            else:
+                tile_footprints.append(gpd.read_file(path__tile_footprint))
+        return pd.concat(tile_footprints)
+
     def get_scene_hdf(self, date, tile, product):
         """Get an option from the configuration file and convert it to a Path object.
         
@@ -85,19 +106,37 @@ class ProjectConfigParser(configparser.ConfigParser):
         pth = pth.format(**{"date":date, "tile": tile, "product":product})
         return Path(pth)
 
-    def write_scene_collection(self, scenecoll, scenecoll_name):
-        sc_dir = (self.get_path("Interim", "rootdir") / "scene_collections")
-        scenecoll_file = sc_dir / (scenecoll_name + ".csv")
-        if scenecoll_file.exists():
+    def write_scene_collection(self, scenecoll, scenecoll_name, scenecoll_params, tile, exist_ok=False):
+        sc_dir = self.get_path("Raw", "scene_colls")
+        scenecoll_file = sc_dir / tile / ("df_" + scenecoll_name + ".csv")
+        scenecoll_params_file = sc_dir / ("params_" + scenecoll_name + ".json")
+        if scenecoll_params_file.exists():
+            scenecoll_params_stored = self.read_scene_collection_params(scenecoll_name)
+            if not scenecoll_params_stored == scenecoll_params:
+                raise ValueError(f"The scene collection parameters already stored for {scenecoll_name} do not fit tothe given ones.")
+        if scenecoll_file.exists() and exist_ok:
+            print(f"{scenecoll_file} exists. It is NOT overwritten! Delete it first if you are sure to write it.")
+        elif scenecoll_file.exists() and not exist_ok:
             raise ValueError(f"{scenecoll_file} exists. Delete it if you are sure to write it.")
         else:
-            sc_dir.mkdir(exist_ok=True, parents=True)
+            scenecoll_file.parent.mkdir(exist_ok=True, parents=True)
             scenecoll.to_csv(scenecoll_file, index=False)
+            json.dump(scenecoll_params, open(scenecoll_params_file, "w"), indent=4)
             print(f" Scene collection written to {scenecoll_file}" )
 
-    def read_scene_collection(self, scenecoll_name):
-        sc_dir = (self.get_path("Interim", "rootdir") / "scene_collections")
-        scenecoll_file = sc_dir / (scenecoll_name + ".csv")
+    def read_scene_collection_params(self, scenecoll_name):
+        sc_dir = self.get_path("Raw", "scene_colls")
+        scenecoll_params_file = sc_dir / ("params_" + scenecoll_name + ".json")
+        if not scenecoll_params_file.exists():
+            raise ValueError(f"{scenecoll_file} doos not exists.")
+        else:
+            params = json.load(open(scenecoll_params_file,"r"))
+            return params
+
+    def read_scene_collection(self, scenecoll_name, tile):
+        sc_dir = self.get_path("Raw", "scene_colls")
+        scenecoll_file = sc_dir / tile / ("df_" + scenecoll_name + ".csv")
+        scenecoll_params_file = sc_dir / ("params_" + scenecoll_name + ".json")
         if not scenecoll_file.exists():
             raise ValueError(f"{scenecoll_file} doos not exists.")
         else:
@@ -106,15 +145,15 @@ class ProjectConfigParser(configparser.ConfigParser):
             return df
 
     def get_scene_collection_names(self):
-        scenecolls = (self.get_path("Interim", "rootdir") / "scene_collections").glob("*.csv")
-        return [sc.stem for sc in scenecolls]
+        scenecolls = self.get_path("Raw", "scene_colls").glob("*.json")
+        return [sc.stem.replace("params_", "") for sc in scenecolls]
 
-    def get_layer_df_of_scene_collection(self, scenecoll_name, bands):
+    def get_layer_df_of_scene_collection(self, scenecoll_name, bands, tile):
         # print(prjconf.get_scene_collection_names())
 
-        scoll = self.read_scene_collection(scenecoll_name)
+        scoll = self.read_scene_collection(scenecoll_name, tile)
 
-        dir_tiffs = self.get_path("Interim", "hls")
+        dir_tiffs = self.get_path("Interim", "hls") / tile # TODO: use hls_layer: ${hls}/{tile}/{sid}/{sid}/{sid}__{band}.tif
         scoll["scenedir"] = [str(Path(dir_tiffs) / sceneid) for sceneid in scoll["sceneid"]]
         scoll.head()
 
@@ -134,5 +173,11 @@ class ProjectConfigParser(configparser.ConfigParser):
                               })
             )
         scoll_lays = pd.concat(scoll_lays).reset_index(drop=True)
-        assert all ([Path(pth).exists() for pth in scoll_lays.path.values])
+        all_exists = True
+        for pth in scoll_lays.path.values:
+            if not Path(pth).exists():
+                print(f"FILE DOES NOT EXIST: {pth}")
+                all_exists = False
+        if not all_exists:
+            raise ValueError("Missing files for scenecoll {scenecoll_name} and bands {','.join(bands)}.")
         return scoll_lays
