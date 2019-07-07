@@ -8,6 +8,7 @@
 
 name: classify-hls
 channels:
+  - bioconda
   - conda-forge
   - defaults
 dependencies:
@@ -20,8 +21,10 @@ dependencies:
   - nbsphinx
   - requests
   - rasterio
+  - sphinx_rtd_theme
   - scikit-learn
   - seaborn
+  - snakemake-minimal
   - tqdm
 
 # manual isntallation of packages in developement to make them local editable:

@@ -1,6 +1,7 @@
 import configparser
 import geopandas as gpd
 import json
+import numpy as np
 import sys
 from pathlib import Path
 import pandas as pd
@@ -181,3 +182,34 @@ class ProjectConfigParser(configparser.ConfigParser):
         if not all_exists:
             raise ValueError("Missing files for scenecoll {scenecoll_name} and bands {','.join(bands)}.")
         return scoll_lays
+
+    def get_paths_features_vts_regular_raster(self, scoll_name, tile, variables, dates, 
+                                              as_dict=False, return_patter=False):
+        """Ger the paths of a regular virtual time series features."""
+        dst_dir = self.get_path("Processed", "raster", tile=tile) / scoll_name
+        distances_in_weeks = [(dates[i] - dates[i-1]).days / 7 for i in range(1, len(dates))]
+        unique_distances_in_weeks = np.unique(np.array(distances_in_weeks))
+        if len(unique_distances_in_weeks) != 1:
+            raise AssertionError(f"Assumed unique distance between virtual dats. Found {unique_distances_in_weeks}")
+        else:
+            if np.mod(unique_distances_in_weeks[0], 1):
+                raise("Distance between virtual dates is not a whole number multiple of a week. Use method: get_paths_features_vts_irregular TO BE IMPLEMENTED")
+            else:
+                dist_for_name = np.round(unique_distances_in_weeks[0], 0)
+        
+        dst_pattern = str(dst_dir) + "/" + f"{tile.lower()}__{scoll_name}__vts4w__" + "{date}__{var}.vrt"
+        if return_patter:
+            return dst_pattern
+        if as_dict:
+            paths = {}
+        else:
+            paths = []
+        for var in variables:
+            paths_v = []
+            for date in dates:
+                paths_v.append(dst_pattern.format(date = date.strftime('%Y-%m-%d'), var = var))
+            if as_dict:
+                paths[var] = paths_v
+            else:
+                paths += paths_v
+        return paths

@@ -42,8 +42,11 @@ extensions = [
     'sphinx.ext.viewcode',
     'nbsphinx',
     'IPython.sphinxext.ipython_console_highlighting',
+    'sphinx.ext.todo',
     # 'm2r'
 ]
+
+todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -113,7 +116,13 @@ html_theme = 'sphinx_rtd_theme'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+# see https://pythonhosted.org/sphinxjp.themes.basicstrap/design.html
+# see https://alabaster.readthedocs.io/en/latest/customization.html#basics
+html_theme_options = {
+  #'page_width': 'auto',
+  #'body_max_width': 'auto',
+  #'caption_font_size': "hugh",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []
