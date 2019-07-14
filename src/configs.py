@@ -48,16 +48,25 @@ class ProjectConfigParser(configparser.ConfigParser):
 
     def get_clc_legend(self):
         """Get a look up table with the class IDs, names and colors of the three CLC levels."""
-        clc_legend = pd.read_csv(self.get_path("Raw", "clc_legend"), delimiter=";").iloc[0:44, :]
-        clc_legend.columns = ["l1_name", "l2_name", "l3_name", "grid_code", "rgb"]
-        clc_legend_ids = clc_legend["l3_name"].str[:5].str.split(".", expand=True)
-        clc_legend["l1_id"] = clc_legend_ids[0].astype("uint8")
-        clc_legend["l2_id"] = (clc_legend_ids[0] + clc_legend_ids[1]).astype("uint8")
-        clc_legend["l3_id"] = (clc_legend_ids[0] + clc_legend_ids[1] + clc_legend_ids[2]).astype("int")
-        clc_legend["l1_name"] = clc_legend["l1_name"].str[3::]
-        clc_legend["l2_name"] = clc_legend["l2_name"].str[4::]
-        clc_legend["l3_name"] = clc_legend["l3_name"].str[6::]
-        clc_legend = clc_legend.fillna(method="ffill")
+
+        
+        clc_legend = pd.read_csv(self.get_path("Raw", "clc_legend_raw"), delimiter=";")
+        clc_legend.columns = ["grid_code", "cid_l3", "name_l3", "rgb"]
+
+        clc_legend["cid_l2"] = clc_legend["cid_l3"].astype(str).str[:2].astype(int)
+        clc_legend["cid_l1"] = clc_legend["cid_l3"].astype(str).str[:1].astype(int)
+
+        # old version
+        # clc_legend = pd.read_csv(self.get_path("Raw", "clc_legend"), delimiter=";").iloc[0:44, :]
+        # clc_legend.columns = ["l1_name", "l2_name", "l3_name", "grid_code", "rgb"]
+        # clc_legend_ids = clc_legend["l3_name"].str[:5].str.split(".", expand=True)
+        # clc_legend["l1_id"] = clc_legend_ids[0].astype("uint8")
+        # clc_legend["l2_id"] = (clc_legend_ids[0] + clc_legend_ids[1]).astype("uint8")
+        # clc_legend["l3_id"] = (clc_legend_ids[0] + clc_legend_ids[1] + clc_legend_ids[2]).astype("int")
+        # clc_legend["l1_name"] = clc_legend["l1_name"].str[3::]
+        # clc_legend["l2_name"] = clc_legend["l2_name"].str[4::]
+        # clc_legend["l3_name"] = clc_legend["l3_name"].str[6::]
+        # clc_legend = clc_legend.fillna(method="ffill")
         return clc_legend
 
     def get_clc_subset(self, tile="32UNU", area_threshold=500000):

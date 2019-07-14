@@ -4,6 +4,8 @@ TILES = prjconf.get("Params", "tiles").split(" ")
 
 CLC_MAX_AREA_THRESHOLD = prjconf.get("Params", "clc_max_area_threshold")
 
+# rename when done to 
+# # Snakefile_clc-to-tiled-vector-data
 
 rule all:
     input:
