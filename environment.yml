@@ -6,9 +6,11 @@
   # - nbsphinx
   # - mlxtend
 
+# conda env create --name classify-hls --file environment.yml
+
 name: classify-hls
 channels:
-  - bioconda
+  # - bioconda
   - conda-forge
   - defaults
 dependencies:
@@ -16,18 +18,27 @@ dependencies:
   - pip
   - beautifulsoup4
   - dask
-  - geopandas
+  - fastparquet
+  - gdal=2.4.1
+  - geopandas=0.4.1
+  # - libtiff 4.0.10 h648cc4a_1001
   - jupyterlab
   - nbsphinx
+  # - pytables # unfortunately this downgrades something (libtiff?) which the breaks the env
   - requests
   - rasterio
   - sphinx_rtd_theme
   - scikit-learn
   - seaborn
-  - snakemake-minimal
+  # - snakemake-minimal
   - tqdm
 
 # manual isntallation of packages in developement to make them local editable:
 # pip3 install --no-deps --editable /home/ben/Devel/Packages/eo-box/
 # pip3 install --no-deps --editable /home/ben/Devel/Packages/nasa_hls/
 # pip3 install --no-deps --editable .
+
+
+ 
+
+ 

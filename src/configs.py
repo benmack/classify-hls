@@ -79,6 +79,11 @@ class ProjectConfigParser(configparser.ConfigParser):
         """Get tile footprint(s) as geopandas dataframe in the epsg specified or the original one if epsg=None."""
         if tile =="ALL":
             tilenames = self.get_tilenames()
+        elif isinstance(tile, list):
+            tilenames = tile
+        else: # assuming the tile is a single tilename
+            tilenames = [tile]
+
         tile_footprints = []
         for tile in tilenames:
             path__tile_footprint = self.get_path("Raw", "tile_footprint", tile)
@@ -222,3 +227,33 @@ class ProjectConfigParser(configparser.ConfigParser):
             else:
                 paths += paths_v
         return paths
+
+    def get_paths_features_stats_regular_raster(self, scoll_name, tile, variables,
+                                                metrics=None, as_dict=False, return_patter=False):
+        """Ger the paths of a regular virtual time series features."""
+        dst_dir = self.get_path("Processed", "raster", tile=tile) / scoll_name
+        
+        dst_pattern = str(dst_dir) + "/" + f"{tile.lower()}__{scoll_name}__stats__" + "{metric}__{var}.vrt"
+        if return_patter:
+            return dst_pattern
+        if as_dict:
+            paths = {}
+        else:
+            paths = []
+        for var in variables:
+            paths_v = []
+            for metric in metrics:
+                paths_v.append(dst_pattern.format(metric = metric, var = var))
+            if as_dict:
+                paths[var] = paths_v
+            else:
+                paths += paths_v
+        return paths
+
+    def get_clean_refset_parameters(self, refset_is):
+        """Return the id_vectordata and list of tilenames which define a clean refset.""" 
+        params = self.get("Params", refset_is)
+        params = params.split(" ")
+        id_vectordata = params[0]
+        tiles = params [1::]
+        return id_vectordata, tiles

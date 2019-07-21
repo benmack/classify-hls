@@ -53,7 +53,9 @@ Scope of the project
    :maxdepth: 2
    :caption: Maybe useful
 
+   lessons-learned
    notebooks/99_maybe-useful/polygon_to_footprint_border_distance.ipynb
+
 
 
 : WARNING: document isn't included in any toctree
